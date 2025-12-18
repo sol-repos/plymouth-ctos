@@ -1,0 +1,136 @@
+/*
+ * Screen dimensions
+ */
+screen.w = Window.GetWidth(0);
+screen.h = Window.GetHeight(0);
+screen.half.w = screen.w / 2;
+screen.half.h = screen.h / 2;
+
+
+/*
+ * Background
+ */
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+
+/*
+ * ctOS animation
+ */
+fun get_filename(index) {
+    return "ctos_animation-" + (index+1) + ".png";
+}
+
+frame_total = 1172;
+loop_to_frame = 1102;
+frames = [];
+for (i = 0; i < frame_total; i++) {
+    frames[i] = Image(get_filename(i));
+}
+
+sprite = Sprite(frames[0]);
+sprite.SetX(screen.half.w - frames[0].GetWidth() / 2);
+sprite.SetY(screen.half.h - frames[0].GetHeight() / 2);
+sprite.SetZ(-10);
+
+frame_index = 0;
+fun refresh_callback() {
+    frame_index++;
+    if (frame_index >= frame_total) {
+        frame_index = loop_to_frame;
+    }
+    sprite.SetImage(frames[frame_index]);
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+
+/*
+ * Dialog variables
+ *
+ * These variables hold images and sprites set by plymouth callbacks (see further below).
+ * Setting them back to null removes them from the screen.
+ */
+message = null;
+prompt = null;
+response = null;
+
+
+/*
+ * Callback functions for dialog
+ */
+
+dialog_y = sprite.GetY() + sprite.GetImage().GetHeight();
+message_offset = 0;
+
+fun display_message() {
+    message.sprite.SetX(screen.half.w - message.image.GetWidth() / 2);
+    message.sprite.SetY(dialog_y + message_offset);
+    message.sprite.SetZ(10);
+}
+
+fun display_dialog() {
+    cur_y = dialog_y;
+    
+    prompt.sprite.SetX(screen.half.w - prompt.image.GetWidth() / 2);
+    prompt.sprite.SetY(cur_y);
+    prompt.sprite.SetZ(10);
+    cur_y += prompt.image.GetHeight() + 10;
+    
+    response.sprite.SetX(screen.half.w - response.image.GetWidth() / 2);
+    response.sprite.SetY(cur_y);
+    response.sprite.SetZ(10);
+    message_offset = cur_y + response.image.GetHeight() + 10;
+}
+
+fun display_normal_callback() {
+    prompt = null;
+    response = null;
+    message = null;
+    message_offset = 0;
+}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+
+fun message_callback(text) {
+    message.image = Image.Text(text, 1, 1, 1, 0.75, "Sans 10");
+    message.sprite = Sprite(message.image);
+    
+    display_message();
+}
+Plymouth.SetMessageFunction(message_callback);
+
+fun display_question_callback(prompt_text, answer_text) {
+    prompt.image = Image.Text(prompt_text, 1, 1, 1, 1, "Sans 12");
+    prompt.sprite = Sprite(prompt.image);
+
+    if (answer_text) {
+        response.image = Image.Text(answer_text, 1, 1, 1, 1, "Sans 12");
+    } else {
+        response.image = Image.Text("Enter response...", 1, 1, 1, 0.5, "Sans 12");
+    }
+
+    response.sprite = Sprite(response.image);
+    
+    display_dialog();
+}
+Plymouth.SetDisplayQuestionFunction(display_question_callback);
+
+fun display_password_callback(prompt_text, bullet_count) {
+	prompt.image = Image.Text(prompt_text, 1, 1, 1, 1, "Sans 12");
+	prompt.sprite = Sprite(prompt.image);
+    
+    dot_string = "";
+    for (i = 0; i < bullet_count; i++) {
+        dot_string += "•";
+    }
+    
+    if (dot_string) {
+        response.image = Image.Text(dot_string, 1, 1, 1, 1, "Sans 12");
+    } else {
+        response.image = Image.Text("Enter passphrase...", 1, 1, 1, 0.5, "Sans 12");
+    }
+    
+    response.sprite = Sprite(response.image);
+    
+    display_dialog();
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);

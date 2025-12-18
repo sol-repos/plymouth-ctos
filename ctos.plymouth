@@ -1,0 +1,9 @@
+[Plymouth Theme]
+Name=ctOS
+Description=ctOS boot animation from Watch Dogs
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/ctos
+ScriptFile=/usr/share/plymouth/themes/ctos/ctos.script
+UseFirmwareBackground=false
